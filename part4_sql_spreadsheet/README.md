@@ -132,7 +132,7 @@ Compared two metrics between MySQL and Kingsoft Spreadsheet.
 | Metric | SQL result | Excel result |
 |---|---:|---:|
 | Total trending records | 46000 | 46000 |
-| Overall average views | [Insert SQL result] | [Insert Excel result] |
+| Overall average views | [1179665] | [1179665] |
 
 Both results should agree. The average views comparison is rounded to two decimal places.
 
