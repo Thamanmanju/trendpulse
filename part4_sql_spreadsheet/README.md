@@ -15,6 +15,192 @@ Run the SQL scripts in a compatible SQL environment and open the Excel workbook 
 ## Design Decisions
 Use readable SQL queries, clear spreadsheet formulas, and explanations of important findings.
 
+## SQL Analysis and Query Results
+
+The database contains three related tables:
+
+- `categories`: category information
+- `videos`: video details and category references
+- `trending_records`: country-wise trending statistics
+
+### Database record counts
+
+| Table | Record count |
+|---|---:|
+| categories | 17 |
+| videos | 14,699 |
+| trending_records | 46,000 |
+
+### SQL Queries
+
+#### 1. Filter trending records by country (WHERE)
+
+```sql
+SELECT *
+FROM trending_records
+WHERE country = 'US';
+```
+
+**Purpose:** Retrieves trending records from the United States.
+
+#### 2. Find the top 10 videos by views (ORDER BY and LIMIT)
+
+```sql
+SELECT video_id, country, views
+FROM trending_records
+ORDER BY views DESC
+LIMIT 10;
+```
+
+**Purpose:** Identifies the 10 highest-view trending records.
+
+#### 3. Find unique countries (DISTINCT)
+
+```sql
+SELECT DISTINCT country
+FROM trending_records;
+```
+
+**Purpose:** Lists the unique countries represented in the dataset.
+
+#### 4. Use column aliases
+
+```sql
+SELECT
+    video_id,
+    views AS total_views,
+    likes AS total_likes,
+    comment_count AS total_comments
+FROM trending_records
+LIMIT 10;
+```
+
+**Purpose:** Uses readable aliases for the selected columns.
+
+#### 5. Calculate average views by country (GROUP BY)
+
+```sql
+SELECT
+    country,
+    ROUND(AVG(views), 2) AS average_views
+FROM trending_records
+GROUP BY country;
+```
+
+**Purpose:** Compares average trending-record views across countries.
+
+#### 6. Find categories with more than 100 trending records (GROUP BY and HAVING)
+
+```sql
+SELECT
+    c.category_name,
+    COUNT(*) AS trending_record_count
+FROM trending_records AS tr
+INNER JOIN videos AS v
+    ON tr.video_id = v.video_id
+INNER JOIN categories AS c
+    ON v.category_id = c.category_id
+GROUP BY c.category_id, c.category_name
+HAVING COUNT(*) > 100
+ORDER BY trending_record_count DESC;
+```
+
+**Purpose:** Identifies categories with a substantial number of trending records.
+
+#### 7. INNER JOIN — trending records with video details
+
+```sql
+SELECT
+    tr.video_id,
+    tr.country,
+    tr.views,
+    v.title,
+    v.channel_title
+FROM trending_records AS tr
+INNER JOIN videos AS v
+    ON tr.video_id = v.video_id
+LIMIT 20;
+```
+
+**Purpose:** Combines matching trending records with their video details.
+
+**Why INNER JOIN?** Only records with a matching video in both tables are returned.
+
+#### 8. LEFT JOIN — retain all videos
+
+```sql
+SELECT
+    v.video_id,
+    v.title,
+    tr.country,
+    tr.views
+FROM videos AS v
+LEFT JOIN trending_records AS tr
+    ON v.video_id = tr.video_id
+LIMIT 20;
+```
+
+**Purpose:** Keeps all videos, including videos without a matching trending record.
+
+**Why LEFT JOIN?** The videos table is the left table, so all its records are retained.
+
+#### 9. RIGHT JOIN — retain all categories
+
+```sql
+SELECT
+    c.category_id,
+    c.category_name,
+    v.video_id,
+    v.title
+FROM videos AS v
+RIGHT JOIN categories AS c
+    ON v.category_id = c.category_id
+ORDER BY c.category_id;
+```
+
+**Purpose:** Keeps every category, including categories without a matching video.
+
+**Why RIGHT JOIN?** The categories table is on the right, so all its records are retained.
+
+### SQL and Spreadsheet Cross-Check
+
+| Metric | Spreadsheet result | SQL result |
+|---|---:|---:|
+| US trending records | 16,000 | Pending verification |
+| Overall average views | 1,179,665 | Pending verification |
+
+The spreadsheet results will be compared with the corresponding SQL query results to confirm consistency.
+
+### Spreadsheet Analysis
+
+The workbook `TrendPulse_Excel_Analysis.xlsx` contains four worksheets:
+
+1. `Trending_Data` — trending records and lookup results.
+2. `Videos` — video details and category names.
+3. `Categories` — category ID and category name mapping.
+4. `Analysis` — pivot table and business metrics.
+
+**Spreadsheet techniques used:**
+
+- VLOOKUP to retrieve category names and category IDs.
+- Pivot table showing average views by category and country.
+- COUNTIF to count US trending records.
+- COUNTA to count trending records.
+- SUM and AVERAGE to calculate view metrics.
+- Filters and descending sorting by views.
+- Conditional formatting to highlight the top 10% of views.
+- Named range `Total_Views` used in formulas.
+
+### Join Design Decisions
+
+- **INNER JOIN:** Used when only matching records are required.
+- **LEFT JOIN:** Used when all videos must remain in the result, even if no trending record exists.
+- **RIGHT JOIN:** Used when all categories must remain in the result, even if no video belongs to a category.
+
+### Conclusion
+
+SQL was used to retrieve, filter, aggregate, and combine relational data. Spreadsheet analysis was used to create lookup columns, summarize results with a pivot table, apply conditional formatting, and calculate business metrics. Comparing both tools helps validate the analysis.
+
 
 ## Excel Spreadsheet Analysis
 
